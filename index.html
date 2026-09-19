@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeUpload — Secure File Upload Testing Tool</title>
+<style>
+  :root{
+    --navy:#0b1830;
+    --blue-deep:#1d4ed8;
+    --blue:#2f6bff;
+    --blue-light:#5b8dff;
+    --sky:#eef3ff;
+    --paper:#ffffff;
+    --ink:#0b1830;
+    --ink-soft:#4b5875;
+    --line:#dfe6f5;
+    --green:#0f9d58;
+    --green-bg:#e9f9ef;
+    --red:#d93025;
+    --red-bg:#fdecec;
+    --radius:14px;
+    --maxw:1120px;
+    font-size:16px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    font-family:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;
+    color:var(--ink);
+    background:var(--paper);
+    line-height:1.55;
+  }
+  h1,h2,h3{
+    font-family:"Inter",system-ui,sans-serif;
+    letter-spacing:-0.02em;
+    margin:0;
+    color:var(--navy);
+  }
+  a{color:inherit;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px;}
+  img{max-width:100%;display:block;}
+
+  /* ---------- NAV ---------- */
+  header.site{
+    position:sticky;top:0;z-index:50;
+    background:rgba(255,255,255,0.88);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;max-width:var(--maxw);margin:0 auto;}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.15rem;color:var(--navy);}
+  .brand .mark{width:32px;height:32px;flex:none;}
+  .brand span.accent{color:var(--blue);}
+  nav.links{display:flex;gap:28px;font-size:0.92rem;font-weight:600;}
+  nav.links a{text-decoration:none;color:var(--ink-soft);transition:color .15s;}
+  nav.links a:hover{color:var(--blue-deep);}
+  .nav-cta{
+    background:var(--blue);color:#fff;border:none;padding:10px 18px;border-radius:999px;
+    font-weight:700;font-size:0.9rem;cursor:pointer;text-decoration:none;
+  }
+  .menu-btn{display:none;background:none;border:none;cursor:pointer;padding:6px;}
+  .menu-btn svg{width:26px;height:26px;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    background:linear-gradient(180deg,var(--sky) 0%, #ffffff 100%);
+    padding:72px 0 60px;
+    overflow:hidden;
+  }
+  .hero .wrap{display:grid;grid-template-columns:1.05fr 0.95fr;gap:48px;align-items:center;}
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    background:#fff;border:1px solid var(--line);color:var(--blue-deep);
+    font-weight:700;font-size:0.78rem;letter-spacing:0.04em;
+    padding:6px 14px;border-radius:999px;margin-bottom:20px;
+  }
+  .hero h1{font-size:clamp(2.2rem,4.2vw,3.3rem);line-height:1.08;font-weight:800;}
+  .hero .tagline{color:var(--blue-deep);font-weight:700;font-size:1.25rem;margin-top:18px;}
+  .hero p.lede{color:var(--ink-soft);font-size:1.05rem;max-width:46ch;margin-top:10px;}
+  .hero-ctas{display:flex;gap:14px;margin-top:28px;flex-wrap:wrap;}
+  .btn-primary{
+    background:var(--blue);color:#fff;padding:13px 24px;border-radius:10px;font-weight:700;
+    text-decoration:none;font-size:0.95rem;box-shadow:0 8px 20px -8px rgba(47,107,255,0.55);
+  }
+  .btn-secondary{
+    background:#fff;border:1px solid var(--line);color:var(--navy);padding:13px 24px;border-radius:10px;
+    font-weight:700;text-decoration:none;font-size:0.95rem;
+  }
+  .hero-art{position:relative;display:flex;align-items:center;justify-content:center;height:340px;}
+  .hero-art .ring{position:absolute;border-radius:50%;border:1.5px dashed #c7d6fb;}
+  .ring1{width:320px;height:320px;}
+  .ring2{width:260px;height:260px;}
+  .hero-shield{width:150px;height:150px;position:relative;z-index:2;filter:drop-shadow(0 18px 26px rgba(47,107,255,0.35));}
+  .float-card{
+    position:absolute;background:#fff;border-radius:10px;box-shadow:0 14px 30px -12px rgba(11,24,48,0.25);
+    padding:12px 14px;width:118px;border:1px solid var(--line);
+  }
+  .float-card.pass{top:18px;left:0;}
+  .float-card.reject{bottom:16px;right:0;}
+  .float-card .tag{font-size:0.62rem;font-weight:800;letter-spacing:0.03em;color:var(--ink-soft);}
+  .float-card .bars{margin:8px 0;}
+  .float-card .bars span{display:block;height:5px;background:#e7ecf7;border-radius:3px;margin-bottom:5px;}
+  .float-card .bars span:nth-child(2){width:70%;}
+  .badge-pass{display:inline-flex;align-items:center;gap:4px;background:var(--green-bg);color:var(--green);font-weight:800;font-size:0.68rem;padding:3px 8px;border-radius:999px;}
+  .badge-reject{display:inline-flex;align-items:center;gap:4px;background:var(--red-bg);color:var(--red);font-weight:800;font-size:0.68rem;padding:3px 8px;border-radius:999px;}
+
+  /* ---------- SECTION SHELL ---------- */
+  section{padding:84px 0;}
+  section.alt{background:var(--sky);}
+  .kicker{color:var(--blue-deep);font-weight:800;font-size:0.8rem;letter-spacing:0.03em;margin-bottom:10px;}
+  .section-head{max-width:640px;margin-bottom:44px;}
+  .section-head h2{font-size:clamp(1.6rem,3vw,2.15rem);font-weight:800;}
+  .section-head p{color:var(--ink-soft);margin-top:12px;font-size:1.02rem;}
+
+  /* ---------- CONCEPT CARDS (slide 1) ---------- */
+  .trio{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+  .trio .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:24px;}
+  .trio .card h3{font-size:0.78rem;font-weight:800;color:var(--blue-deep);letter-spacing:0.03em;margin-bottom:10px;}
+  .trio .card p{color:var(--ink-soft);font-size:0.95rem;margin:0;}
+
+  /* ---------- FEATURES (slide 2) ---------- */
+  .feat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
+  .feat-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:26px 22px;}
+  .feat-card .icon{width:44px;height:44px;border-radius:10px;background:var(--sky);display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
+  .feat-card .icon svg{width:22px;height:22px;stroke:var(--blue-deep);}
+  .feat-card h3{font-size:1rem;font-weight:700;margin-bottom:6px;}
+  .feat-card p{color:var(--ink-soft);font-size:0.9rem;margin:0;}
+  .benefits{display:flex;flex-wrap:wrap;gap:12px;margin-top:36px;}
+  .benefits span{
+    background:#fff;border:1px solid var(--line);border-radius:999px;padding:9px 16px;font-size:0.86rem;font-weight:600;color:var(--navy);
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .benefits span svg{width:15px;height:15px;stroke:var(--green);flex:none;}
+
+  /* ---------- STEPS (slide 3) ---------- */
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;counter-reset:step;margin-bottom:44px;}
+  .step{position:relative;padding-top:8px;}
+  .step .num{
+    width:38px;height:38px;border-radius:50%;background:var(--blue);color:#fff;font-weight:800;
+    display:flex;align-items:center;justify-content:center;margin-bottom:14px;font-size:0.95rem;
+  }
+  .step h3{font-size:0.95rem;font-weight:800;letter-spacing:0.02em;}
+  .step p{color:var(--ink-soft);font-size:0.88rem;margin-top:4px;}
+
+  .mock-row{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+  .mockup{background:var(--navy);border-radius:12px;overflow:hidden;border:1px solid #16233f;}
+  .mockup .bar{display:flex;align-items:center;gap:6px;padding:10px 14px;background:#0e1c38;}
+  .mockup .dot{width:8px;height:8px;border-radius:50%;background:#3a4a6b;}
+  .mockup .barlabel{margin-left:auto;background:#16233f;color:#8ba3d6;font-size:0.65rem;padding:3px 10px;border-radius:999px;}
+  .mockup .body{padding:22px 18px 18px;}
+  .drop{
+    border:1.5px dashed #2c3d63;border-radius:10px;padding:26px 10px;text-align:center;color:#9fb2df;
+  }
+  .drop svg{width:20px;height:20px;stroke:var(--blue-light);margin-bottom:8px;}
+  .drop .dtitle{color:#e7edfb;font-weight:700;font-size:0.85rem;}
+  .drop .dsub{font-size:0.72rem;margin-top:6px;color:#7488b3;}
+  .chooseBtn{display:inline-block;margin-top:12px;background:var(--blue);color:#fff;font-size:0.72rem;font-weight:700;padding:6px 14px;border-radius:999px;}
+  .filename{margin-top:10px;font-size:0.72rem;color:#7488b3;}
+  .resultbox{margin-top:14px;border-radius:8px;padding:10px 12px;font-size:0.75rem;}
+  .resultbox.pass{background:rgba(15,157,88,0.14);border:1px solid rgba(15,157,88,0.4);color:#8be0af;}
+  .resultbox.reject{background:rgba(217,48,37,0.14);border:1px solid rgba(217,48,37,0.4);color:#f0a19b;}
+  .resultbox strong{display:block;color:#fff;margin-bottom:3px;}
+  .mock-caption{text-align:center;font-weight:700;color:var(--blue-deep);margin-top:14px;font-size:0.92rem;}
+
+  /* ---------- TECH STACK (slide 4) ---------- */
+  .stack-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+  .stack-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:26px;}
+  .stack-card h3{font-size:0.78rem;font-weight:800;color:var(--blue-deep);letter-spacing:0.03em;margin-bottom:16px;}
+  .stack-item{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--line);}
+  .stack-item:first-of-type{border-top:none;}
+  .stack-item .dot2{width:8px;height:8px;border-radius:50%;background:var(--blue);margin-top:7px;flex:none;}
+  .stack-item .name{font-weight:700;font-size:0.9rem;}
+  .stack-item .role{color:var(--ink-soft);font-size:0.84rem;}
+
+  /* ---------- BACKEND FLOW (slide 5) ---------- */
+  .flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;}
+  .flow-step{
+    flex:1 1 140px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 16px;
+    position:relative;margin:8px;
+  }
+  .flow-step .fnum{
+    width:26px;height:26px;border-radius:7px;background:var(--blue);color:#fff;font-size:0.75rem;font-weight:800;
+    display:flex;align-items:center;justify-content:center;margin-bottom:10px;
+  }
+  .flow-step h4{font-size:0.88rem;font-weight:800;margin-bottom:4px;}
+  .flow-step p{font-size:0.8rem;color:var(--ink-soft);margin:0;}
+  .flow-final{
+    margin-top:8px;background:var(--navy);color:#fff;border-radius:12px;padding:16px 20px;font-weight:700;
+    text-align:center;font-size:0.95rem;
+  }
+
+  /* ---------- FLOWCHART (slide 6) ---------- */
+  .chart-wrap{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:40px 20px;overflow-x:auto;}
+  .chart-wrap svg{display:block;margin:0 auto;min-width:640px;}
+  .legend{display:flex;gap:24px;justify-content:center;margin-top:24px;flex-wrap:wrap;font-size:0.82rem;color:var(--ink-soft);}
+  .legend span{display:inline-flex;align-items:center;gap:8px;}
+  .legend i{width:14px;height:14px;border-radius:3px;display:inline-block;}
+
+  /* ---------- TESTING TABLE (slide 7) ---------- */
+  .checks{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:40px;}
+  .check-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:22px;}
+  .check-card .num3{color:var(--blue-deep);font-weight:800;font-size:0.78rem;margin-bottom:8px;}
+  .check-card h3{font-size:1rem;font-weight:700;margin-bottom:6px;}
+  .check-card p{color:var(--ink-soft);font-size:0.88rem;margin:0;}
+  table.results{width:100%;border-collapse:collapse;background:#fff;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);}
+  table.results th, table.results td{padding:14px 16px;text-align:left;font-size:0.88rem;border-bottom:1px solid var(--line);}
+  table.results th{background:var(--sky);color:var(--navy);font-weight:800;font-size:0.76rem;letter-spacing:0.02em;}
+  table.results tr:last-child td{border-bottom:none;}
+  table.results td.sample{color:var(--ink-soft);}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:0.76rem;padding:4px 10px;border-radius:999px;}
+  .pill.pass{background:var(--green-bg);color:var(--green);}
+  .pill.reject{background:var(--red-bg);color:var(--red);}
+  .pill.san{background:#fff4e0;color:#b6790a;}
+  .table-note{color:var(--ink-soft);font-size:0.85rem;margin-top:16px;}
+
+  /* ---------- LIMITATIONS/FUTURE/CONCLUSION (slide 8) ---------- */
+  .lf-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:36px;}
+  .lf-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:26px;}
+  .lf-card h3{font-size:0.85rem;font-weight:800;letter-spacing:0.02em;margin-bottom:16px;}
+  .lf-card.limits h3{color:var(--red);}
+  .lf-card.future h3{color:var(--green);}
+  .lf-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;}
+  .lf-list li{display:flex;align-items:center;gap:10px;font-size:0.92rem;color:var(--navy);}
+  .lf-list li svg{width:16px;height:16px;flex:none;}
+  .lf-card.limits svg{stroke:var(--red);}
+  .lf-card.future svg{stroke:var(--green);}
+  .conclusion{
+    background:linear-gradient(135deg,var(--navy),#122754);color:#fff;border-radius:18px;padding:44px;
+    text-align:center;
+  }
+  .conclusion p{max-width:70ch;margin:0 auto;color:#c9d6f5;font-size:1.02rem;}
+  .conclusion .tag2{color:#fff;font-weight:800;font-size:1.15rem;margin-top:20px;}
+
+  /* ---------- FOOTER ---------- */
+  footer{background:var(--navy);color:#c9d6f5;padding:44px 0 28px;}
+  footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;}
+  footer .brand{color:#fff;}
+  footer .fine{font-size:0.82rem;color:#8ea3cf;}
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:920px){
+    .hero .wrap{grid-template-columns:1fr;}
+    .hero-art{height:260px;order:-1;}
+    .trio, .stack-grid, .lf-grid, .checks{grid-template-columns:1fr;}
+    .feat-grid{grid-template-columns:repeat(2,1fr);}
+    .steps{grid-template-columns:repeat(2,1fr);}
+    .mock-row{grid-template-columns:1fr;}
+    table.results{font-size:0.8rem;}
+  }
+  @media (max-width:680px){
+    nav.links{display:none;}
+    .menu-btn{display:block;}
+    .feat-grid{grid-template-columns:1fr;}
+    .steps{grid-template-columns:1fr;}
+    table.results{display:block;overflow-x:auto;white-space:nowrap;}
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="nav">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 3 L34 8 V19 C34 28 28 34.5 20 37 C12 34.5 6 28 6 19 V8 Z" fill="#2f6bff"/>
+        <path d="M20 13 L26 21 H22 V27 H18 V21 H14 Z" fill="#fff"/>
+      </svg>
+      Safe<span class="accent">Upload</span>
+    </div>
+    <nav class="links">
+      <a href="#concept">Concept</a>
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#stack">Tech</a>
+      <a href="#backend">Backend</a>
+      <a href="#testing">Testing</a>
+      <a href="#next">Roadmap</a>
+    </nav>
+    <a class="nav-cta" href="#how">See it work</a>
+    <button class="menu-btn" aria-label="Menu" onclick="document.querySelector('nav.links').classList.toggle('open')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#0b1830" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">Project Concept</div>
+      <h1>Secure File Upload<br>Testing Tool</h1>
+      <div class="tagline">Upload Smarter. Stay Safer.</div>
+      <p class="lede">Upload a file and receive a clear PASS or REJECT result based on file type, file size, and filename validation.</p>
+      <div class="hero-ctas">
+        <a class="btn-primary" href="#how">See how it works</a>
+        <a class="btn-secondary" href="#testing">View test results</a>
+      </div>
+    </div>
+    <div class="hero-art">
+      <div class="ring ring1"></div>
+      <div class="ring ring2"></div>
+      <svg class="hero-shield" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M60 8 L104 22 V56 C104 84 86 102 60 112 C34 102 16 84 16 56 V22 Z" fill="#2f6bff"/>
+        <path d="M60 8 L104 22 V56 C104 84 86 102 60 112 Z" fill="#5b8dff"/>
+        <path d="M60 40 L78 64 H68 V84 H52 V64 H42 Z" fill="#fff"/>
+      </svg>
+      <div class="float-card pass">
+        <div class="tag">PDF</div>
+        <div class="bars"><span></span><span></span></div>
+        <span class="badge-pass">✓ PASS</span>
+      </div>
+      <div class="float-card reject">
+        <div class="tag">EXE</div>
+        <div class="bars"><span></span><span></span></div>
+        <span class="badge-reject">✕ REJECT</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="concept">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Project Concept</div>
+      <h2>Why SafeUpload exists</h2>
+      <p>Most upload forms accept a file and hope for the best. SafeUpload checks it first.</p>
+    </div>
+    <div class="trio">
+      <div class="card">
+        <h3>PROBLEM</h3>
+        <p>Users upload files to websites without knowing whether the file meets security and upload requirements.</p>
+      </div>
+      <div class="card">
+        <h3>CONCEPT</h3>
+        <p>A simple file-upload testing tool that checks uploaded files against basic security and validation rules.</p>
+      </div>
+      <div class="card">
+        <h3>OBJECTIVE</h3>
+        <p>Make file-upload testing simple by detecting potentially unsafe or invalid files before they reach their destination.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="features">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">What We Provide</div>
+      <h2>Features &amp; benefits</h2>
+      <p>Four checks run on every upload, and every result is easy to read.</p>
+    </div>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M6 3h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/></svg></div>
+        <h3>File Type Validation</h3>
+        <p>Checks whether the uploaded file type is allowed.</p>
+      </div>
+      <div class="feat-card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v14"/><path d="M6 11l6 6 6-6"/><path d="M4 21h16"/></svg></div>
+        <h3>5 MB Size Validation</h3>
+        <p>Ensures uploaded files do not exceed the 5 MB limit.</p>
+      </div>
+      <div class="feat-card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+        <h3>Filename Sanitization</h3>
+        <p>Cleans the filename to make it safer to process and store.</p>
+      </div>
+      <div class="feat-card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <h3>Pass / Reject Result</h3>
+        <p>Provides the user with a clear validation result after checking the file.</p>
+      </div>
+    </div>
+    <div class="benefits">
+      <span><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Simple file validation</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Easy-to-understand results</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Safer file handling</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Fast feedback</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>User-friendly interface</span>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">How The User Uses It</div>
+      <h2>From selection to validation result</h2>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="num">1</div><h3>SELECT</h3><p>Pick a file</p></div>
+      <div class="step"><div class="num">2</div><h3>UPLOAD</h3><p>Drag &amp; drop or choose</p></div>
+      <div class="step"><div class="num">3</div><h3>VALIDATE</h3><p>Type, size &amp; filename</p></div>
+      <div class="step"><div class="num">4</div><h3>RESULT</h3><p>Clear PASS or REJECT</p></div>
+    </div>
+    <div class="mock-row">
+      <div>
+        <div class="mockup">
+          <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="barlabel">safeupload</span></div>
+          <div class="body">
+            <div class="drop">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 21h14"/></svg>
+              <div class="dtitle">Drag &amp; drop your file here</div>
+              <div class="dsub">or</div>
+              <div class="chooseBtn">Choose file</div>
+            </div>
+          </div>
+        </div>
+        <div class="mock-caption">Upload interface</div>
+      </div>
+      <div>
+        <div class="mockup">
+          <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="barlabel">safeupload</span></div>
+          <div class="body">
+            <div class="drop">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 21h14"/></svg>
+              <div class="dtitle">Drag &amp; drop your file here</div>
+              <div class="chooseBtn">Choose file</div>
+              <div class="filename">report.pdf</div>
+            </div>
+            <div class="resultbox pass"><strong>File uploaded successfully</strong>This file is an allowed type, within the size limit, and its filename is secure.</div>
+          </div>
+        </div>
+        <div class="mock-caption">File selected → PASS</div>
+      </div>
+      <div>
+        <div class="mockup">
+          <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="barlabel">safeupload</span></div>
+          <div class="body">
+            <div class="drop">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 21h14"/></svg>
+              <div class="dtitle">Drag &amp; drop your file here</div>
+              <div class="chooseBtn">Choose file</div>
+              <div class="filename">setup.exe</div>
+            </div>
+            <div class="resultbox reject"><strong>File type not allowed</strong>Only .txt, .pdf, .png, .jpg and .jpeg files are accepted. This file is a .exe file.</div>
+          </div>
+        </div>
+        <div class="mock-caption">Unsupported type → REJECT</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="stack">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">How Was It Made</div>
+      <h2>Technology stack</h2>
+    </div>
+    <div class="stack-grid">
+      <div class="stack-card">
+        <h3>FRONTEND — HTML + CSS</h3>
+        <div class="stack-item"><span class="dot2"></span><div><div class="name">Website structure</div></div></div>
+        <div class="stack-item"><span class="dot2"></span><div><div class="name">Styling</div></div></div>
+        <div class="stack-item"><span class="dot2"></span><div><div class="name">Upload interface</div></div></div>
+      </div>
+      <div class="stack-card">
+        <h3>BACKEND — Python + Flask</h3>
+        <div class="stack-item"><span class="dot2"></span><div><div class="name">Receiving uploaded files</div></div></div>
+        <div class="stack-item"><span class="dot2"></span><div><div class="name">Processing validation</div></div></div>
+        <div class="stack-item"><span class="dot2"></span><div><div class="name">Applying security checks</div></div></div>
+        <div class="stack-item"><span class="dot2"></span><div><div class="name">Returning results</div></div></div>
+      </div>
+      <div class="stack-card">
+        <h3>TOOLS — VS Code + Chrome / Edge</h3>
+        <div class="stack-item"><span class="dot2"></span><div><div class="name">VS Code</div><div class="role">Code editor</div></div></div>
+        <div class="stack-item"><span class="dot2"></span><div><div class="name">Chrome / Edge</div><div class="role">Web browsers for user interaction</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="backend">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Backend Working</div>
+      <h2>What happens behind the website?</h2>
+    </div>
+    <div class="flow">
+      <div class="flow-step"><div class="fnum">01</div><h4>Browser</h4><p>The user selects and uploads a file through the website.</p></div>
+      <div class="flow-step"><div class="fnum">02</div><h4>POST /upload</h4><p>The uploaded file is sent to the backend using the upload endpoint.</p></div>
+      <div class="flow-step"><div class="fnum">03</div><h4>Flask</h4><p>The Python Flask backend receives and processes the uploaded file.</p></div>
+      <div class="flow-step"><div class="fnum">04</div><h4>File Validation</h4><p>The backend checks the file type and size.</p></div>
+      <div class="flow-step"><div class="fnum">05</div><h4>Secure Filename</h4><p>The filename is sanitized before further processing.</p></div>
+      <div class="flow-step"><div class="fnum">06</div><h4>Result</h4><p>The system returns a PASS or REJECT result to the user.</p></div>
+    </div>
+    <div class="flow-final">PASS or REJECT returned to the user</div>
+  </div>
+</section>
+
+<section class="alt" id="flowchart">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Backend Flowchart</div>
+      <h2>Validation logic</h2>
+    </div>
+    <div class="chart-wrap">
+      <svg viewBox="0 0 800 260" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+        <!-- START -->
+        <rect x="10" y="105" width="90" height="50" rx="25" fill="#0b1830"/>
+        <text x="55" y="135" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">START</text>
+        <!-- Receive File -->
+        <rect x="140" y="105" width="110" height="50" rx="8" fill="#2f6bff"/>
+        <text x="195" y="126" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">Receive</text>
+        <text x="195" y="142" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">File</text>
+        <!-- Check Type diamond -->
+        <polygon points="330,80 410,130 330,180 250,130" fill="#eef3ff" stroke="#2f6bff" stroke-width="1.5"/>
+        <text x="330" y="124" text-anchor="middle" fill="#0b1830" font-size="11" font-weight="700">Check Type:</text>
+        <text x="330" y="140" text-anchor="middle" fill="#0b1830" font-size="11" font-weight="700">allowed?</text>
+        <!-- Check Size diamond -->
+        <polygon points="510,80 590,130 510,180 430,130" fill="#eef3ff" stroke="#2f6bff" stroke-width="1.5"/>
+        <text x="510" y="124" text-anchor="middle" fill="#0b1830" font-size="11" font-weight="700">Check Size:</text>
+        <text x="510" y="140" text-anchor="middle" fill="#0b1830" font-size="11" font-weight="700">≤ 5 MB?</text>
+        <!-- Sanitize Filename -->
+        <rect x="630" y="105" width="120" height="50" rx="8" fill="#2f6bff"/>
+        <text x="690" y="126" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">Sanitize</text>
+        <text x="690" y="142" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">Filename</text>
+        <!-- PASS -->
+        <rect x="655" y="200" width="90" height="46" rx="23" fill="#0f9d58"/>
+        <text x="700" y="228" text-anchor="middle" fill="#fff" font-size="13" font-weight="800">PASS</text>
+        <!-- REJECT boxes -->
+        <rect x="290" y="10" width="90" height="42" rx="21" fill="#d93025"/>
+        <text x="335" y="36" text-anchor="middle" fill="#fff" font-size="12" font-weight="800">REJECT</text>
+        <rect x="470" y="10" width="90" height="42" rx="21" fill="#d93025"/>
+        <text x="515" y="36" text-anchor="middle" fill="#fff" font-size="12" font-weight="800">REJECT</text>
+
+        <!-- arrows -->
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#8496b8"/>
+          </marker>
+        </defs>
+        <line x1="100" y1="130" x2="138" y2="130" stroke="#8496b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="250" y1="130" x2="252" y2="130" stroke="#8496b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="410" y1="130" x2="428" y2="130" stroke="#8496b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <text x="418" y="120" font-size="10" fill="#0f9d58" font-weight="700">Yes</text>
+        <line x1="590" y1="130" x2="628" y2="130" stroke="#8496b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <text x="600" y="120" font-size="10" fill="#0f9d58" font-weight="700">Yes</text>
+        <line x1="330" y1="80" x2="335" y2="52" stroke="#8496b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <text x="345" y="65" font-size="10" fill="#d93025" font-weight="700">No</text>
+        <line x1="510" y1="80" x2="515" y2="52" stroke="#8496b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <text x="525" y="65" font-size="10" fill="#d93025" font-weight="700">No</text>
+        <line x1="690" y1="155" x2="700" y2="198" stroke="#8496b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+        <!-- legend note via text -->
+        <text x="55" y="180" text-anchor="middle" font-size="9" fill="#8496b8"></text>
+      </svg>
+    </div>
+    <div class="legend">
+      <span><i style="background:#0b1830;border-radius:50%;"></i>Start / End</span>
+      <span><i style="background:#2f6bff;"></i>Process</span>
+      <span><i style="background:#eef3ff;border:1.5px solid #2f6bff;"></i>Decision</span>
+    </div>
+  </div>
+</section>
+
+<section id="testing">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Validation &amp; Testing</div>
+      <h2>Three checks. One decision.</h2>
+    </div>
+    <div class="checks">
+      <div class="check-card"><div class="num3">01</div><h3>File Type</h3><p>Checks whether the uploaded file type is allowed.</p></div>
+      <div class="check-card"><div class="num3">02</div><h3>File Size</h3><p>Checks whether the file is within the 5 MB limit.</p></div>
+      <div class="check-card"><div class="num3">03</div><h3>Filename</h3><p>Sanitizes the uploaded filename.</p></div>
+    </div>
+    <table class="results">
+      <thead>
+        <tr><th>Test case</th><th>Input (sample file)</th><th>Expected result</th><th>Actual result</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Valid file type</td><td class="sample">notes.txt</td><td><span class="pill pass">PASS</span></td><td><span class="pill pass">PASS</span></td></tr>
+        <tr><td>Invalid file type</td><td class="sample">setup.exe (unsupported type)</td><td><span class="pill reject">REJECT</span></td><td><span class="pill reject">REJECT</span></td></tr>
+        <tr><td>File above 5 MB</td><td class="sample">big.png (6 MB)</td><td><span class="pill reject">REJECT</span></td><td><span class="pill reject">REJECT</span></td></tr>
+        <tr><td>Valid filename</td><td class="sample">report.pdf</td><td><span class="pill pass">PASS</span></td><td><span class="pill pass">PASS</span></td></tr>
+        <tr><td>Unsafe filename</td><td class="sample">my report (final)!.txt</td><td><span class="pill san">SANITIZED</span></td><td><span class="pill san">SANITIZED</span></td></tr>
+      </tbody>
+    </table>
+    <p class="table-note">Results from running the project's index.html in a Chromium browser with the sample files shown.</p>
+  </div>
+</section>
+
+<section class="alt" id="next">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Limitations, Future Scope &amp; Conclusion</div>
+      <h2>Where SafeUpload goes next</h2>
+    </div>
+    <div class="lf-grid">
+      <div class="lf-card limits">
+        <h3>LIMITATIONS</h3>
+        <ul class="lf-list">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>Limited formats</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>5 MB limit</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>No authentication</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>No malware scanning</li>
+        </ul>
+      </div>
+      <div class="lf-card future">
+        <h3>FUTURE SCOPE</h3>
+        <ul class="lf-list">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Malware scanning</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Authentication</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Database</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>More formats</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Detailed reports</li>
+        </ul>
+      </div>
+    </div>
+    <div class="conclusion">
+      <p>SafeUpload provides a simple and user-friendly way to validate uploaded files before they reach their destination. By checking file type, file size, and filenames, the system provides a clear PASS or REJECT result while establishing a foundation for more advanced file-security features in the future.</p>
+      <div class="tag2">Upload Smarter. Stay Safer.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 3 L34 8 V19 C34 28 28 34.5 20 37 C12 34.5 6 28 6 19 V8 Z" fill="#5b8dff"/>
+        <path d="M20 13 L26 21 H22 V27 H18 V21 H14 Z" fill="#0b1830"/>
+      </svg>
+      Safe<span style="color:#5b8dff;">Upload</span>
+    </div>
+    <div class="fine">Secure File Upload Testing Tool — Project Concept</div>
+  </div>
+</footer>
+
+</body>
+</html>
